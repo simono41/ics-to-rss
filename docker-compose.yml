@@ -11,6 +11,7 @@ services:
     #ports:
     #  - "8080:8080"
     environment:
+      - TZ=Europe/Berlin
       - VIRTUAL_HOST=ics.brothertec.eu
       - VIRTUAL_PORT=8080
       - LETSENCRYPT_HOST=ics.brothertec.eu
