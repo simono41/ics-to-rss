@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+
+# Go application service
+  go-app:
+    build:
+      context: go/.
+      args:
+        - GO111MODULE=on
+    #ports:
+    #  - "8080:8080"
+    environment:
+      - VIRTUAL_HOST=ics.brothertec.eu
+      - VIRTUAL_PORT=8080
+      - LETSENCRYPT_HOST=ics.brothertec.eu
+      - LETSENCRYPT_EMAIL=admin@brothertec.eu
+
+    restart: always
+
+    labels:
+      - flame.type=application
+      - flame.name=ICS to RSS
+      - flame.url=https://ics.brothertec.eu
+      - flame.icon=image
+
+    networks:
+      default:
+      proxy:
+      edge-tier:
+
+networks:
+  proxy:
+    name: nginx-proxy
+    external: true
+  edge-tier:
+    name: edge
+    external: true
