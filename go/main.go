@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "log"
     "net/http"
     "time"
@@ -16,6 +17,12 @@ func convertICStoRSS(w http.ResponseWriter, r *http.Request) {
         log.Println("[ERROR] Missing 'ics' query parameter")
         http.Error(w, "Missing 'ics' query parameter", http.StatusBadRequest)
         return
+    }
+
+    // Lese den Zeitraum aus dem Query-Parameter
+    timeRange := r.URL.Query().Get("range")
+    if timeRange == "" {
+        timeRange = "all" // Standardwert, wenn kein Zeitraum angegeben ist
     }
 
     log.Printf("[INFO] Fetching ICS file from URL: %s\n", icsURL)
@@ -39,19 +46,21 @@ func convertICStoRSS(w http.ResponseWriter, r *http.Request) {
     feed := &feeds.Feed{
         Title:       "Converted Calendar Feed",
         Link:        &feeds.Link{Href: icsURL},
-        Description: "This is a converted calendar feed",
+        Description: fmt.Sprintf("This is a converted calendar feed for %s", timeRange),
         Created:     time.Now(),
     }
 
+    now := time.Now()
     for _, event := range parser.Events {
-        // Dereferenziere event.Start, um den time.Time Wert zu erhalten
-        item := &feeds.Item{
-            Title:       event.Summary,
-            Description: event.Description,
-            Link:        &feeds.Link{Href: icsURL},
-            Created:     *event.Start,
+        if shouldIncludeEvent(event, timeRange, now) {
+            item := &feeds.Item{
+                Title:       event.Summary,
+                Description: event.Description,
+                Link:        &feeds.Link{Href: icsURL},
+                Created:     *event.Start,
+            }
+            feed.Items = append(feed.Items, item)
         }
-        feed.Items = append(feed.Items, item)
     }
 
     log.Println("[INFO] Generating RSS feed")
@@ -68,6 +77,21 @@ func convertICStoRSS(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte(rssData))
 
     log.Println("[INFO] RSS feed successfully generated and sent")
+}
+
+func shouldIncludeEvent(event gocal.Event, timeRange string, now time.Time) bool {
+    switch timeRange {
+    case "today":
+        return event.Start.Year() == now.Year() && event.Start.YearDay() == now.YearDay()
+    case "week":
+        _, thisWeek := now.ISOWeek()
+        _, eventWeek := event.Start.ISOWeek()
+        return event.Start.Year() == now.Year() && eventWeek == thisWeek
+    case "month":
+        return event.Start.Year() == now.Year() && event.Start.Month() == now.Month()
+    default:
+        return true // "all" oder jeder andere Wert zeigt alle Ereignisse
+    }
 }
 
 func main() {

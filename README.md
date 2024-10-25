@@ -36,6 +36,13 @@ http://localhost:8080/rss?ics=<ICS_URL>
 
 Ersetze `<ICS_URL>` durch die URL deiner ICS-Datei.
 
+Und Optional wenn nur die Events des heutigen Tages, Woche, oder Monats ausgegeben werden soll:
+
+- Für alle Events: `/rss?ics=<ICS_URL>`
+- Für heutige Events: `/rss?ics=<ICS_URL>&range=today`
+- Für Events dieser Woche: `/rss?ics=<ICS_URL>&range=week`
+- Für Events dieses Monats: `/rss?ics=<ICS_URL>&range=month`
+
 ## Docker Compose Datei
 
 Hier ist der Inhalt der `docker-compose.yml` Datei:
