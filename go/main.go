@@ -65,7 +65,7 @@ func convertICStoRSS(w http.ResponseWriter, r *http.Request) {
 
     log.Println("[INFO] Generating RSS feed")
 
-    // RSS als HTTP-Antwort senden
+    // RSS als XML generieren
     rssData, err := feed.ToRss()
     if err != nil {
         log.Printf("[ERROR] Unable to generate RSS feed: %v\n", err)
@@ -73,10 +73,14 @@ func convertICStoRSS(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    w.Header().Set("Content-Type", "application/rss+xml")
-    w.Write([]byte(rssData))
+    // Header setzen für XML-Anzeige im Browser
+    w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+    w.Header().Set("X-Content-Type-Options", "nosniff")
 
-    log.Println("[INFO] RSS feed successfully generated and sent")
+    // XML-Daten an den Browser senden
+    fmt.Fprint(w, rssData)
+
+    log.Println("[INFO] RSS feed successfully generated and sent as XML")
 }
 
 func shouldIncludeEvent(event gocal.Event, timeRange string, now time.Time) bool {
